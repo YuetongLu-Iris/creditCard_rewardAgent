@@ -1,0 +1,207 @@
+[
+  {
+    "transaction_id": "G4wRZprDnpSANAJBvyGlu6GXKQwWjrFmPk59Z7",
+    "date": "2026-06-13",
+    "name": "CREDIT CARD 3333 PAYMENT *//",
+    "amount": 25.0,
+    "category": [
+      "Other"
+    ],
+    "merchant_name": "CREDIT CARD 3333 PAYMENT *//",
+    "account_id": "G4wRZprDnpSANAJBvyGlu6GDj1ryKEHWx11pl"
+  },
+  {
+    "transaction_id": "oebWErKn1rsNoNvXndymUxP9LlyGnNug7Ed9vz",
+    "date": "2026-06-13",
+    "name": "Uber 063015 SF**POOL**",
+    "amount": 5.4,
+    "category": [
+      "Travel",
+      "Airlines and Aviation Services"
+    ],
+    "merchant_name": "Uber",
+    "account_id": "Az14NeDEweHB1BWRDLvJCPXKzGyaAoUWJ11pX"
+  },
+  {
+    "transaction_id": "XAoQPaLWbaSokopW9e6Zi31LrxXdlwUVnGmgDQ",
+    "date": "2026-06-12",
+    "name": "ACH Electronic CreditGUSTO PAY 123456",
+    "amount": 5850.0,
+    "category": [
+      "Other"
+    ],
+    "merchant_name": "ACH Electronic CreditGUSTO PAY 123456",
+    "account_id": "QLz7BKjDpKUVdV4Ma1bvSmNDAkjPBquk6ppgM"
+  },
+  {
+    "transaction_id": "bKpwE1bWD1sqaqyvXm9Af6oW1P4GAzFaZ8XLBK",
+    "date": "2026-06-12",
+    "name": "CD DEPOSIT .INITIAL.",
+    "amount": 1000.0,
+    "category": [
+      "Other"
+    ],
+    "merchant_name": "CD DEPOSIT .INITIAL.",
+    "account_id": "n74bEKqnRKUpxpdmeNj4fvXJNLp7d5S8V665o"
+  },
+  {
+    "transaction_id": "mjJayqlnMqHWBWy9pmnauRl8a31ynWFxd6Djry",
+    "date": "2026-06-11",
+    "name": "Touchstone Climbing",
+    "amount": 78.5,
+    "category": [
+      "Other"
+    ],
+    "merchant_name": "Touchstone Climbing",
+    "account_id": "bKpwE1bWD1sqaqyvXm9Af6o3Akz91aHGKVVkk"
+  },
+  {
+    "transaction_id": "gxpN98RWM8SoaoLxQlzAi73ey1B8kmiznWxDyQ",
+    "date": "2026-06-11",
+    "name": "United Airlines",
+    "amount": -500.0,
+    "category": [
+      "Travel",
+      "Airlines and Aviation Services"
+    ],
+    "merchant_name": "United Airlines",
+    "account_id": "Az14NeDEweHB1BWRDLvJCPXKzGyaAoUWJ11pX"
+  },
+  {
+    "transaction_id": "8b6vK3nEJ3IDRD63bjB9SV8XjEy5DvfMLqbaNj",
+    "date": "2026-06-10",
+    "name": "McDonald's",
+    "amount": 12.0,
+    "category": [
+      "Food and Drink",
+      "Restaurants"
+    ],
+    "merchant_name": "McDonald's",
+    "account_id": "Az14NeDEweHB1BWRDLvJCPXKzGyaAoUWJ11pX"
+  },
+  {
+    "transaction_id": "Ed7ne1qDV1I6K6eR3dEATAljZLPvdqtGkbqQ6k",
+    "date": "2026-06-10",
+    "name": "Starbucks",
+    "amount": 4.33,
+    "category": [
+      "Food and Drink",
+      "Restaurants"
+    ],
+    "merchant_name": "Starbucks",
+    "account_id": "Az14NeDEweHB1BWRDLvJCPXKzGyaAoUWJ11pX"
+  },
+  {
+    "transaction_id": "WWJpNd1DXdHpGp49ylnQfjPXWybza1Fn1gkMBE",
+    "date": "2026-06-09",
+    "name": "SparkFun",
+    "amount": 89.4,
+    "category": [
+      "Other"
+    ],
+    "merchant_name": "FUN",
+    "account_id": "Az14NeDEweHB1BWRDLvJCPXKzGyaAoUWJ11pX"
+  },
+  {
+    "transaction_id": "n74bEKqnRKUpxpdmeNj4fvX9dZoWNpFrWvjkJ9",
+    "date": "2026-06-08",
+    "name": "INTRST PYMNT",
+    "amount": -4.22,
+    "category": [
+      "Other"
+    ],
+    "merchant_name": "INTRST PYMNT",
+    "account_id": "G4wRZprDnpSANAJBvyGlu6GDj1ryKEHWx11pl"
+  },
+  {
+    "transaction_id": "yEdDqjPnkjcKgKQk4VLnuaJok6xXAKhjXxzdgR",
+    "date": "2026-05-29",
+    "name": "United Airlines",
+    "amount": 500.0,
+    "category": [
+      "Travel",
+      "Airlines and Aviation Services"
+    ],
+    "merchant_name": "United Airlines",
+    "account_id": "bKpwE1bWD1sqaqyvXm9Af6o3Akz91aHGKVVkk"
+  },
+  {
+    "transaction_id": "Az14NeDEweHB1BWRDLvJCPXgALZbzyfZAzQwB5",
+    "date": "2026-05-27",
+    "name": "Uber 072515 SF**POOL**",
+    "amount": 6.33,
+    "category": [
+      "Travel",
+      "Airlines and Aviation Services"
+    ],
+    "merchant_name": "Uber",
+    "account_id": "Az14NeDEweHB1BWRDLvJCPXKzGyaAoUWJ11pX"
+  },
+  {
+    "transaction_id": "9mk5rxbERxSKWKMQ463guzaq49mogkfAQjp8Kp",
+    "date": "2026-05-24",
+    "name": "Tectra Inc",
+    "amount": 500.0,
+    "category": [
+      "Other"
+    ],
+    "merchant_name": "Tectra Inc",
+    "account_id": "bKpwE1bWD1sqaqyvXm9Af6o3Akz91aHGKVVkk"
+  },
+  {
+    "transaction_id": "6GXLlzAEnzIgGgdqWVw6FqKkEBRjJeINX4BJzW",
+    "date": "2026-05-23",
+    "name": "AUTOMATIC PAYMENT - THANK",
+    "amount": 2078.5,
+    "category": [
+      "Other"
+    ],
+    "merchant_name": "AUTOMATIC PAYMENT - THANK",
+    "account_id": "bKpwE1bWD1sqaqyvXm9Af6o3Akz91aHGKVVkk"
+  },
+  {
+    "transaction_id": "RpBZ3r7DwrIXLXRl9WmNcZPbQ6qV17CDb8gjZv",
+    "date": "2026-05-23",
+    "name": "KFC",
+    "amount": 500.0,
+    "category": [
+      "Other"
+    ],
+    "merchant_name": "KFC",
+    "account_id": "bKpwE1bWD1sqaqyvXm9Af6o3Akz91aHGKVVkk"
+  },
+  {
+    "transaction_id": "voB3X4ang4fWwWVBxaoeu5PdlKNkrWsNkrMxwD",
+    "date": "2026-05-23",
+    "name": "Madison Bicycle Shop",
+    "amount": 500.0,
+    "category": [
+      "Other"
+    ],
+    "merchant_name": "Madison Bicycle Shop",
+    "account_id": "bKpwE1bWD1sqaqyvXm9Af6o3Akz91aHGKVVkk"
+  },
+  {
+    "transaction_id": "wk3xEN4mRNhqBqrXjPd1fra8BW55ZyukxNBXJw",
+    "date": "2026-05-14",
+    "name": "CREDIT CARD 3333 PAYMENT *//",
+    "amount": 25.0,
+    "category": [
+      "Other"
+    ],
+    "merchant_name": "CREDIT CARD 3333 PAYMENT *//",
+    "account_id": "G4wRZprDnpSANAJBvyGlu6GDj1ryKEHWx11pl"
+  },
+  {
+    "transaction_id": "WWJpNd1DXdHpGp49ylnQfjPlga997wfn79Jzgj",
+    "date": "2026-05-14",
+    "name": "Uber 063015 SF**POOL**",
+    "amount": 5.4,
+    "category": [
+      "Travel",
+      "Airlines and Aviation Services"
+    ],
+    "merchant_name": "Uber",
+    "account_id": "Az14NeDEweHB1BWRDLvJCPXKzGyaAoUWJ11pX"
+  }
+]

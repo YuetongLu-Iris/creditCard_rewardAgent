@@ -1,0 +1,45 @@
+{
+  "total_spent": 11179.86,
+  "total_best_rewards": 239.4377,
+  "category_summaries": [
+    {
+      "category": "Other",
+      "total_spent": 10646.4,
+      "best_card": "Capital One Venture",
+      "best_rewards": 212.928,
+      "all_card_rewards": {
+        "Chase Sapphire Preferred": 106.464,
+        "American Express Gold": 106.464,
+        "Capital One Venture": 212.928,
+        "Citi Double Cash": 212.928,
+        "Chase Freedom Unlimited": 159.696
+      }
+    },
+    {
+      "category": "Travel",
+      "total_spent": 517.13,
+      "best_card": "Capital One Venture",
+      "best_rewards": 25.8565,
+      "all_card_rewards": {
+        "Chase Sapphire Preferred": 10.342600000000001,
+        "American Express Gold": 15.513900000000001,
+        "Capital One Venture": 25.8565,
+        "Citi Double Cash": 10.342600000000001,
+        "Chase Freedom Unlimited": 25.8565
+      }
+    },
+    {
+      "category": "Food and Drink",
+      "total_spent": 16.33,
+      "best_card": "American Express Gold",
+      "best_rewards": 0.6532,
+      "all_card_rewards": {
+        "Chase Sapphire Preferred": 0.4899,
+        "American Express Gold": 0.6532,
+        "Capital One Venture": 0.3266,
+        "Citi Double Cash": 0.3266,
+        "Chase Freedom Unlimited": 0.4899
+      }
+    }
+  ]
+}
