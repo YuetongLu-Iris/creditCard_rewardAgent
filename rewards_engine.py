@@ -14,6 +14,28 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
+# ── Category Normalization ────────────────────────────────────────────────────
+# Maps new Plaid SNAKE_CASE primaries (after underscore→space) to legacy names
+# used in the card database. Only needed where the strings genuinely differ.
+_CATEGORY_ALIASES: dict[str, str] = {
+   "food and drink":       "food and drink",
+    "general merchandise":  "shops",
+    "entertainment":        "recreation",
+    "personal care":        "healthcare",
+    "medical":              "healthcare",
+    "groceries":            "food and drink",
+    "restaurants":          "food and drink",
+    "transportation":       "travel",        # map Uber/transit to travel
+    "rent and utilities":   "service",
+}
+
+
+def _normalize_category(category: str) -> str:
+    """Lowercase + underscore→space, then apply legacy alias if one exists."""
+    normalized = category.replace("_", " ").lower()
+    return _CATEGORY_ALIASES.get(normalized, normalized)
+
+
 # ── Data Models ───────────────────────────────────────────────────────────────
 
 @dataclass
@@ -36,8 +58,9 @@ class CreditCard:
         Return (multiplier, description) for the given Plaid category.
         Falls back to base_rate if no specific rate exists.
         """
+        normalized = _normalize_category(category)
         for rate in self.rates:
-            if rate.category.lower() == category.lower():
+            if _normalize_category(rate.category) == normalized:
                 return rate.multiplier, rate.description
         return self.base_rate, f"{self.base_rate}x on all other purchases"
 
@@ -150,12 +173,14 @@ def analyze_transactions(transactions: list[dict]) -> dict:
     """
     transaction_results: list[TransactionResult] = []
     category_data: dict[str, dict] = {}
-
+    SKIP_CATEGORIES = {"transfer_out", "transfer_in", "loan_payments", "transfer", "payment"}
     for txn in transactions:
         # Skip credits / refunds
+
         if txn["amount"] <= 0:
             continue
-
+        if txn["category"][0].lower() in SKIP_CATEGORIES:
+            continue
         amount   = txn["amount"]
         merchant = txn.get("merchant_name") or txn.get("name", "Unknown")
         category = txn["category"][0] if txn.get("category") else "Other"

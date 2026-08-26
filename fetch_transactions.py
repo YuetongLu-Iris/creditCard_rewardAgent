@@ -82,7 +82,11 @@ def fetch_transactions(
     end_date   = date.today()
     start_date = end_date - timedelta(days=days_back)
 
-    options = TransactionsGetRequestOptions(count=max_results, offset=0)
+    options = TransactionsGetRequestOptions(
+        count=max_results,
+        offset=0,
+        include_personal_finance_category=True,
+    )
     request = TransactionsGetRequest(
         access_token=access_token,
         start_date=start_date,
@@ -90,16 +94,23 @@ def fetch_transactions(
         options=options,
     )
     response = client.transactions_get(request)
-    
+
     transactions = []
     for txn in response["transactions"]:
+        pfc = txn.get("personal_finance_category") or {}
         raw_category = txn.get("category") or []
+        if pfc:
+            category = [pfc.get("primary", "Other"), pfc.get("detailed", "")]
+        elif raw_category:
+            category = raw_category
+        else:
+            category = infer_category(txn.get("merchant_name") or txn["name"])
         transactions.append({
             "transaction_id": txn["transaction_id"],
             "date":           str(txn["date"]),
-            "name":           txn["name"],                        # merchant name
+            "name":           txn["name"],
             "amount":         txn["amount"],                      # positive = debit
-            "category": raw_category if raw_category else infer_category(txn.get("merchant_name") or txn["name"]),
+            "category":       category,
             "merchant_name":  txn.get("merchant_name") or txn["name"],
             "account_id":     txn["account_id"],
         })
