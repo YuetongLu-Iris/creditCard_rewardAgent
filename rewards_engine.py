@@ -179,7 +179,7 @@ def analyze_transactions(transactions: list[dict]) -> dict:
 
         if txn["amount"] <= 0:
             continue
-        if txn["category"][0].lower() in SKIP_CATEGORIES:
+        if txn["category"][0].lower().strip() in SKIP_CATEGORIES:
             continue
         amount   = txn["amount"]
         merchant = txn.get("merchant_name") or txn.get("name", "Unknown")

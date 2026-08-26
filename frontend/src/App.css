@@ -252,7 +252,7 @@ body {
   background: #fff;
 }
 /* Markdown inside chat bubbles */
-/*.message-bubble h3 {
+.message-bubble h3 {
   font-size: 13px;
   font-weight: 700;
   margin: 10px 0 4px;
@@ -306,4 +306,29 @@ body {
   padding: 1px 5px;
   border-radius: 4px;
   font-size: 12px;
-}*/
+}
+
+.message-bubble table {
+  border-collapse: collapse;
+  font-size: 12px;
+  margin: 8px 0;
+  width: 100%;
+}
+
+.message-bubble th {
+  background: #ede9fe;
+  color: #4f46e5;
+  padding: 6px 10px;
+  text-align: left;
+  font-weight: 600;
+  border: 1px solid #e5e7eb;
+}
+
+.message-bubble td {
+  padding: 6px 10px;
+  border: 1px solid #e5e7eb;
+}
+
+.message-bubble tr:nth-child(even) {
+  background: #faf5ff;
+}

@@ -5,10 +5,12 @@ import {
 } from "recharts";
 import axios from "axios";
 import "./App.css";
-import ReacMarkdown from "react-markdown";
-
+//import ReacMarkdown from "react-markdown";
+//import { default as ReactMarkdown } from "react-markdown";
+import {marked} from "marked"
 const API = "http://localhost:8000";
 const SESSION_ID = "user-session-1";
+
 
 // ── Colours for charts ────────────────────────────────────────────────────────
 const CHART_COLORS = [
@@ -17,6 +19,13 @@ const CHART_COLORS = [
 ];
 
 // ── Small components ──────────────────────────────────────────────────────────
+// Configure marked to support tables
+marked.setOptions({
+  gfm: true,
+});
+
+const formatCategory = (cat) =>
+  cat.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 function StatCard({ label, value, sub }) {
   return (
@@ -27,31 +36,36 @@ function StatCard({ label, value, sub }) {
     </div>
   );
 }
-function ChatMessage({ role, text }) {
-  return (
-    <div className={`message ${role}`}>
-      <div className="message-bubble">
-        {text.split("\n").map((line, i) => (
-          <span key={i}>{line}{i < text.split("\n").length - 1 && <br />}</span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-//function ChatMessage({ role, text }) {
+// function ChatMessage({ role, text }) {
 //   return (
 //     <div className={`message ${role}`}>
 //       <div className="message-bubble">
-//         {role === "agent" ? (
-//           <ReactMarkdown>{text}</ReactMarkdown>
-//         ) : (
-//           text
-//         )}
+//         {text.split("\n").map((line, i) => (
+//           <span key={i}>{line}{i < text.split("\n").length - 1 && <br />}</span>
+//         ))}
 //       </div>
 //     </div>
 //   );
 // }
+
+
+function ChatMessage({ role, text }) {
+  if (!text) return null;
+  return (
+    <div className={`message ${role}`}>
+      <div
+        className="message-bubble"
+        dangerouslySetInnerHTML={
+          role === "agent"
+            ? { __html: marked(text) }
+            : undefined
+        }
+      >
+        {role !== "agent" ? text : undefined}
+      </div>
+    </div>
+  );
+}
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 
@@ -131,7 +145,7 @@ export default function App() {
 
   // ── Dashboard helpers ──────────────────────────────────────────────────────
   const pieData = txnData?.category_breakdown?.map((c) => ({
-    name: c.category,
+    name: formatCategory(c.category),
     value: c.total,
   })) ?? [];
 
@@ -213,8 +227,8 @@ export default function App() {
                           data={pieData}
                           cx="50%"
                           cy="45%"
-                          innerRadius={60}
-                          outerRadius={90}
+                          innerRadius={55}
+                          outerRadius={85}
                           paddingAngle={3}
                           dataKey="value"
                         >
@@ -267,7 +281,7 @@ export default function App() {
                         .sort((a, b) => b.total_spent - a.total_spent)
                         .map((s, i) => (
                           <tr key={i}>
-                            <td>{s.category}</td>
+                            <td>{formatCategory(s.category)}</td>
                             <td>${s.total_spent.toFixed(2)}</td>
                             <td><span className="card-badge">{s.best_card}</span></td>
                             <td className="rewards-cell">${s.best_rewards.toFixed(2)}</td>

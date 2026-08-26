@@ -1,6 +1,6 @@
 {
-  "total_spent": 11155.79,
-  "total_best_rewards": 263.9842,
+  "total_spent": 2202.29,
+  "total_best_rewards": 84.91420000000001,
   "category_summaries": [
     {
       "category": "TRANSPORTATION",
@@ -29,19 +29,6 @@
       }
     },
     {
-      "category": "LOAN_PAYMENTS",
-      "total_spent": 2103.5,
-      "best_card": "Capital One Venture",
-      "best_rewards": 42.07,
-      "all_card_rewards": {
-        "Chase Sapphire Preferred": 21.035,
-        "American Express Gold": 21.035,
-        "Capital One Venture": 42.07,
-        "Citi Double Cash": 42.07,
-        "Chase Freedom Unlimited": 31.5525
-      }
-    },
-    {
       "category": "FOOD_AND_DRINK",
       "total_spent": 516.33,
       "best_card": "American Express Gold",
@@ -52,19 +39,6 @@
         "Capital One Venture": 10.326600000000001,
         "Citi Double Cash": 10.326600000000001,
         "Chase Freedom Unlimited": 15.489899999999999
-      }
-    },
-    {
-      "category": "TRANSFER_OUT",
-      "total_spent": 6850.0,
-      "best_card": "Capital One Venture",
-      "best_rewards": 137.0,
-      "all_card_rewards": {
-        "Chase Sapphire Preferred": 68.5,
-        "American Express Gold": 68.5,
-        "Capital One Venture": 137.0,
-        "Citi Double Cash": 137.0,
-        "Chase Freedom Unlimited": 102.75
       }
     },
     {

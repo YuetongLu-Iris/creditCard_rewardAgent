@@ -121,10 +121,14 @@ def get_transactions():
     category_totals: dict[str, float] = {}
     category_counts: dict[str, int]   = {}
 
+    SKIP_CATEGORIES = {"transfer_out", "transfer_in", "loan_payments", "transfer", "payment"}
+
     for txn in transactions:
         if txn["amount"] <= 0:
             continue
         cat = txn["category"][0] if txn.get("category") else "Other"
+        if cat.lower().strip() in SKIP_CATEGORIES:
+            continue
         category_totals[cat] = category_totals.get(cat, 0) + txn["amount"]
         category_counts[cat] = category_counts.get(cat, 0) + 1
 
