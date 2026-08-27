@@ -8,7 +8,8 @@ import "./App.css";
 //import ReacMarkdown from "react-markdown";
 //import { default as ReactMarkdown } from "react-markdown";
 import {marked} from "marked"
-const API = "http://localhost:8000";
+//const API = "http://localhost:8000";
+const API = "https://creditcard-rewardagent.onrender.com";
 const SESSION_ID = "user-session-1";
 
 
