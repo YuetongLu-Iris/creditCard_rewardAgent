@@ -168,12 +168,16 @@ export default function App() {
   }
 
   // ── Send chat message (text and/or image) ─────────────────────────────────
-  async function sendPayload(text, imageToSend) {
-    if ((!text && !imageToSend) || chatLoading) return;
-
-    setMessages((m) => [...m, { role: "user", text, imageUrl: imageToSend?.previewUrl }]);
-    setInput("");
-    setChatLoading(true);
+  // Free-tier hosting spins down when idle, so the first message after the
+  // page loads can hit a backend that's still waking up — retry once with
+  // an honest status message instead of failing hard.
+  async function sendPayload(text, imageToSend, attempt = 1) {
+    if (attempt === 1) {
+      if ((!text && !imageToSend) || chatLoading) return;
+      setMessages((m) => [...m, { role: "user", text, imageUrl: imageToSend?.previewUrl }]);
+      setInput("");
+      setChatLoading(true);
+    }
 
     try {
       const res = await axios.post(`${API}/chat`, {
@@ -189,12 +193,20 @@ export default function App() {
         confirmOptions: res.data.confirm_card_options || null,
         confirmContext: text || "Photo recommendation",
       }]);
+      setChatLoading(false);
     } catch {
+      if (attempt === 1) {
+        setMessages((m) => [...m, {
+          role: "agent",
+          text: "⏳ The server was asleep (free hosting) — waking it up, retrying in a few seconds…",
+        }]);
+        setTimeout(() => sendPayload(text, imageToSend, 2), 6000);
+        return;
+      }
       setMessages((m) => [
         ...m,
         { role: "agent", text: "Sorry, something went wrong. Is the backend running?" },
       ]);
-    } finally {
       setChatLoading(false);
     }
   }
