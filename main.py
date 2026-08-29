@@ -47,8 +47,10 @@ conversation_histories: dict[str, list[dict]] = {}
 # ── Request / Response Models ─────────────────────────────────────────────────
 
 class ChatRequest(BaseModel):
-    message: str
+    message: str = ""
     session_id: str = "default"
+    image_base64: str | None = None       # raw base64, no data: URL prefix
+    image_media_type: str | None = None   # e.g. "image/jpeg", "image/png"
 
 
 class ChatResponse(BaseModel):
@@ -77,8 +79,17 @@ def chat_endpoint(request: ChatRequest):
 
     history = conversation_histories[session_id]
 
+    image = None
+    if request.image_base64:
+        if not request.image_media_type:
+            raise HTTPException(status_code=400, detail="image_media_type is required when image_base64 is set.")
+        image = {"media_type": request.image_media_type, "data": request.image_base64}
+
+    if not request.message and not image:
+        raise HTTPException(status_code=400, detail="Provide a message, an image, or both.")
+
     try:
-        response_text, updated_history = chat(request.message, history)
+        response_text, updated_history = chat(request.message, history, image=image)
         conversation_histories[session_id] = updated_history
         return ChatResponse(response=response_text, session_id=session_id)
     except Exception as e:

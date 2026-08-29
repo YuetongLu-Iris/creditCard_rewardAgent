@@ -50,19 +50,16 @@ function StatCard({ label, value, sub }) {
 // }
 
 
-function ChatMessage({ role, text }) {
-  if (!text) return null;
+function ChatMessage({ role, text, imageUrl }) {
+  if (!text && !imageUrl) return null;
   return (
     <div className={`message ${role}`}>
-      <div
-        className="message-bubble"
-        dangerouslySetInnerHTML={
-          role === "agent"
-            ? { __html: marked(text) }
-            : undefined
-        }
-      >
-        {role !== "agent" ? text : undefined}
+      <div className="message-bubble">
+        {imageUrl && <img src={imageUrl} alt="Attachment" className="message-image" />}
+        {text && role === "agent" && (
+          <div dangerouslySetInnerHTML={{ __html: marked(text) }} />
+        )}
+        {text && role !== "agent" && <span>{text}</span>}
       </div>
     </div>
   );
@@ -86,7 +83,9 @@ export default function App() {
   ]);
   const [input, setInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
+  const [pendingImage, setPendingImage] = useState(null); // { previewUrl, base64, mediaType }
   const bottomRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // ── Fetch dashboard data ───────────────────────────────────────────────────
   useEffect(() => {
@@ -112,20 +111,34 @@ export default function App() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Add this useEffect alongside your existing ones
+  useEffect(() => {
+  const keepAlive = setInterval(() => {
+    axios.get(`${API}/`).catch(() => {});  // silent ping
+  }, 10 * 60 * 1000);  // every 10 minutes
+
+  return () => clearInterval(keepAlive);
+}, []);
+
   // ── Send chat message ──────────────────────────────────────────────────────
   async function sendMessage() {
     const text = input.trim();
-    if (!text || chatLoading) return;
+    if ((!text && !pendingImage) || chatLoading) return;
 
-    setMessages((m) => [...m, { role: "user", text }]);
+    const imageToSend = pendingImage;
+    setMessages((m) => [...m, { role: "user", text, imageUrl: imageToSend?.previewUrl }]);
     setInput("");
+    setPendingImage(null);
     setChatLoading(true);
 
     try {
       const res = await axios.post(`${API}/chat`, {
         message: text,
         session_id: SESSION_ID,
-      });
+        ...(imageToSend
+          ? { image_base64: imageToSend.base64, image_media_type: imageToSend.mediaType }
+          : {}),
+      }, { timeout: 60000 });
       setMessages((m) => [...m, { role: "agent", text: res.data.response }]);
     } catch (e) {
       setMessages((m) => [
@@ -142,6 +155,25 @@ export default function App() {
       e.preventDefault();
       sendMessage();
     }
+  }
+
+  // ── Image attach ────────────────────────────────────────────────────────────
+  function handleImageSelect(e) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file later
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result; // "data:image/png;base64,...."
+      const base64 = dataUrl.split(",")[1];
+      setPendingImage({ previewUrl: dataUrl, base64, mediaType: file.type || "image/jpeg" });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearPendingImage() {
+    setPendingImage(null);
   }
 
   // ── Dashboard helpers ──────────────────────────────────────────────────────
@@ -301,7 +333,7 @@ export default function App() {
           <div className="chat-container">
             <div className="chat-messages">
               {messages.map((m, i) => (
-                <ChatMessage key={i} role={m.role} text={m.text} />
+                <ChatMessage key={i} role={m.role} text={m.text} imageUrl={m.imageUrl} />
               ))}
               {chatLoading && (
                 <div className="message agent">
@@ -313,11 +345,42 @@ export default function App() {
               <div ref={bottomRef} />
             </div>
 
+            {pendingImage && (
+              <div className="pending-image-row">
+                <img src={pendingImage.previewUrl} alt="To send" className="pending-image-thumb" />
+                <span className="pending-image-label">Image attached</span>
+                <button
+                  type="button"
+                  className="pending-image-remove"
+                  onClick={clearPendingImage}
+                  title="Remove image"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
             <div className="chat-input-row">
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleImageSelect}
+                style={{ display: "none" }}
+              />
+              <button
+                type="button"
+                className="attach-btn"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={chatLoading}
+                title="Attach a photo — receipt, storefront, or card"
+              >
+                📎
+              </button>
               <textarea
                 className="chat-input"
                 rows={1}
-                placeholder="Ask about your spending or rewards…"
+                placeholder="Ask about your spending or rewards, or attach a photo…"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -325,14 +388,14 @@ export default function App() {
               <button
                 className="send-btn"
                 onClick={sendMessage}
-                disabled={chatLoading || !input.trim()}
+                disabled={chatLoading || (!input.trim() && !pendingImage)}
               >
                 Send
               </button>
             </div>
 
             <p className="chat-hint">
-              Try: "Which card for Whole Foods?" · "Show my rewards report" · "Compare Amex Gold vs Chase Sapphire"
+              Try: "Which card for Whole Foods?" · "Show my rewards report" · attach a receipt photo
             </p>
           </div>
         )}

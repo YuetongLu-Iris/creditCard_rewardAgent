@@ -244,6 +244,52 @@ body {
 .send-btn:hover:not(:disabled) { background: #4338ca; }
 .send-btn:disabled { background: #c4b5fd; cursor: not-allowed; }
 
+.attach-btn {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 10px;
+  font-size: 16px;
+  padding: 0 12px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.attach-btn:hover:not(:disabled) { background: #f3f4f6; border-color: #c7c9f5; }
+.attach-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.pending-image-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+.pending-image-thumb {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+.pending-image-label { font-size: 12px; color: #6b7280; flex: 1; }
+.pending-image-remove {
+  border: none;
+  background: none;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+}
+.pending-image-remove:hover { color: #dc2626; }
+
+.message-image {
+  max-width: 220px;
+  max-height: 220px;
+  border-radius: 10px;
+  display: block;
+  margin-bottom: 6px;
+}
+
 .chat-hint {
   text-align: center;
   font-size: 11px;

@@ -1,0 +1,121 @@
+[
+  {
+    "name": "Chase Sapphire Preferred",
+    "base_rate": 1.0,
+    "rates": [
+      {
+        "category": "Food and Drink",
+        "multiplier": 3.0,
+        "description": "3x points on dining"
+      },
+      {
+        "category": "Travel",
+        "multiplier": 2.0,
+        "description": "2x points on travel"
+      },
+      {
+        "category": "Shops",
+        "multiplier": 1.0,
+        "description": "1x points on shopping"
+      }
+    ],
+    "annual_fee": 95,
+    "description": "Mid-tier travel rewards card; points transfer to airline/hotel partners.",
+    "source": "seed",
+    "last_updated": null
+  },
+  {
+    "name": "American Express Gold",
+    "base_rate": 1.0,
+    "rates": [
+      {
+        "category": "Food and Drink",
+        "multiplier": 4.0,
+        "description": "4x points on dining & groceries"
+      },
+      {
+        "category": "Travel",
+        "multiplier": 3.0,
+        "description": "3x points on flights"
+      },
+      {
+        "category": "Shops",
+        "multiplier": 1.0,
+        "description": "1x points on shopping"
+      }
+    ],
+    "annual_fee": 325,
+    "description": "Premium dining/grocery rewards card with strong food-focused multipliers.",
+    "source": "seed",
+    "last_updated": null
+  },
+  {
+    "name": "Capital One Venture",
+    "base_rate": 2.0,
+    "rates": [
+      {
+        "category": "Travel",
+        "multiplier": 5.0,
+        "description": "5x miles on hotels & rental cars via Capital One Travel"
+      }
+    ],
+    "annual_fee": 95,
+    "description": "Flat-rate travel card \u2014 2x miles on everything, 5x on Capital One Travel bookings.",
+    "source": "seed",
+    "last_updated": null
+  },
+  {
+    "name": "Citi Double Cash",
+    "base_rate": 2.0,
+    "rates": [],
+    "annual_fee": 0,
+    "description": "No-annual-fee flat 2% cashback card with no bonus categories to track.",
+    "source": "seed",
+    "last_updated": null
+  },
+  {
+    "name": "Chase Freedom Unlimited",
+    "base_rate": 1.5,
+    "rates": [
+      {
+        "category": "Food and Drink",
+        "multiplier": 3.0,
+        "description": "3% on dining & drugstores"
+      },
+      {
+        "category": "Travel",
+        "multiplier": 5.0,
+        "description": "5% on travel via Chase portal"
+      }
+    ],
+    "annual_fee": 0,
+    "description": "No-annual-fee card with a 1.5x base rate and dining/travel bonus categories.",
+    "source": "seed",
+    "last_updated": null
+  },
+  {
+    "name": "Chase Sapphire Reserve\u00ae",
+    "base_rate": 1,
+    "rates": [
+      {
+        "category": "Travel",
+        "multiplier": 8,
+        "description": "8x points on all Chase Travel\u2120 purchases (flights, hotels including The Edit\u2120, car rentals, cruises, activities & tours booked through Chase Travel)"
+      },
+      {
+        "category": "Travel",
+        "multiplier": 4,
+        "description": "4x points on flights and hotels booked directly with airlines/hotels (outside Chase Travel)"
+      },
+      {
+        "category": "Food and Drink",
+        "multiplier": 3,
+        "description": "3x points on dining worldwide"
+      }
+    ],
+    "annual_fee": 795,
+    "description": "Chase's flagship ultra-premium travel rewards card offering high earn rates on Chase Travel and dining, extensive statement credits, airport lounge access, and flexible Ultimate Rewards point redemptions \u2014 overhauled in June 2025 with a $795 annual fee.",
+    "source": "web_search",
+    "last_updated": "2026-08-28"
+  }
+]

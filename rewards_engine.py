@@ -11,8 +11,10 @@ Run standalone to see a full rewards report:
 """
 
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from pathlib import Path
+
+CARDS_CATALOG_PATH = Path(__file__).parent / "cards_catalog.json"
 
 # ── Category Normalization ────────────────────────────────────────────────────
 # Maps new Plaid SNAKE_CASE primaries (after underscore→space) to legacy names
@@ -52,64 +54,57 @@ class CreditCard:
     name: str
     base_rate: float                        # fallback rate for uncategorized spend
     rates: list[RewardsRate] = field(default_factory=list)
+    annual_fee: float = 0.0
+    description: str = ""
+    source: str = "seed"                    # "seed" (curated) or "web_search" (discovered live)
+    last_updated: str | None = None         # ISO date; None for hand-curated seed entries
 
     def get_rate_for_category(self, category: str) -> tuple[float, str]:
         """
         Return (multiplier, description) for the given Plaid category.
-        Falls back to base_rate if no specific rate exists.
+        Falls back to base_rate if no specific rate exists. When a card has
+        multiple sub-tiered rates for the same category (e.g. a higher rate
+        for bookings through the issuer's portal vs. direct), the best one
+        is returned rather than whichever happened to be listed first.
         """
         normalized = _normalize_category(category)
-        for rate in self.rates:
-            if _normalize_category(rate.category) == normalized:
-                return rate.multiplier, rate.description
+        matches = [r for r in self.rates if _normalize_category(r.category) == normalized]
+        if matches:
+            best = max(matches, key=lambda r: r.multiplier)
+            return best.multiplier, best.description
         return self.base_rate, f"{self.base_rate}x on all other purchases"
 
 
 # ── Card Database ─────────────────────────────────────────────────────────────
-# Manually curated rewards rates per Plaid spending category.
-# Plaid's top-level categories: Food and Drink, Travel, Shops, Recreation,
-# Service, Healthcare, Transfer, Payment, Bank Fees, Interest, Cash Advance
+# Cards live in cards_catalog.json (seeded with a handful of well-known cards).
+# New cards discovered via web search (see skills/add_owned_card.py and
+# skills/recommend_new_card.py) get appended here at runtime and persisted back.
 
-CARDS: list[CreditCard] = [
-    CreditCard(
-        name="Chase Sapphire Preferred",
-        base_rate=1.0,
-        rates=[
-            RewardsRate("Food and Drink", 3.0, "3x points on dining"),
-            RewardsRate("Travel",          2.0, "2x points on travel"),
-            RewardsRate("Shops",           1.0, "1x points on shopping"),
-        ],
-    ),
-    CreditCard(
-        name="American Express Gold",
-        base_rate=1.0,
-        rates=[
-            RewardsRate("Food and Drink", 4.0, "4x points on dining & groceries"),
-            RewardsRate("Travel",          3.0, "3x points on flights"),
-            RewardsRate("Shops",           1.0, "1x points on shopping"),
-        ],
-    ),
-    CreditCard(
-        name="Capital One Venture",
-        base_rate=2.0,  # flat 2x on everything — great catch-all
-        rates=[
-            RewardsRate("Travel", 5.0, "5x miles on hotels & rental cars via Capital One Travel"),
-        ],
-    ),
-    CreditCard(
-        name="Citi Double Cash",
-        base_rate=2.0,  # flat 2% cashback on everything
-        rates=[],       # no bonus categories — simple flat rate
-    ),
-    CreditCard(
-        name="Chase Freedom Unlimited",
-        base_rate=1.5,
-        rates=[
-            RewardsRate("Food and Drink", 3.0, "3% on dining & drugstores"),
-            RewardsRate("Travel",          5.0, "5% on travel via Chase portal"),
-        ],
-    ),
-]
+def _card_from_dict(d: dict) -> CreditCard:
+    return CreditCard(
+        name=d["name"],
+        base_rate=d["base_rate"],
+        rates=[RewardsRate(**r) for r in d.get("rates", [])],
+        annual_fee=d.get("annual_fee", 0.0),
+        description=d.get("description", ""),
+        source=d.get("source", "seed"),
+        last_updated=d.get("last_updated"),
+    )
+
+
+def load_cards_catalog() -> list[CreditCard]:
+    if not CARDS_CATALOG_PATH.exists():
+        return []
+    with open(CARDS_CATALOG_PATH) as f:
+        return [_card_from_dict(d) for d in json.load(f)]
+
+
+def save_cards_catalog(cards: list[CreditCard]) -> None:
+    with open(CARDS_CATALOG_PATH, "w") as f:
+        json.dump([asdict(c) for c in cards], f, indent=2)
+
+
+CARDS: list[CreditCard] = load_cards_catalog()
 
 
 # ── Core Engine ───────────────────────────────────────────────────────────────
