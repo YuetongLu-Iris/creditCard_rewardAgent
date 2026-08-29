@@ -23,8 +23,16 @@ weight bonus categories that match where they actually spend.
    — don't rely on memorized figures, sign-up bonuses change frequently.
    Cite what you found (issuer, offer amount, as of what date).
 
+## Keep research tight
+
+Search 2-3 times at most, then commit to an answer with what you have.
+Don't keep refining or re-searching to find a marginally better source —
+this needs to respond quickly, and a solid answer now beats a slightly
+better one that takes minutes.
+
 ## Output
 
 Present 1-3 ranked options, not just one, with the reasoning above made
-explicit for each. When you're done researching, call `report_recommendation`
-with the full write-up in markdown.
+explicit for each — but keep the write-up itself short (a few lines per
+option, not an essay). When you're done researching, call
+`report_recommendation` with the full write-up in markdown.

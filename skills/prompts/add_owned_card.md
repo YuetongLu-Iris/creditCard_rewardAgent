@@ -31,7 +31,8 @@ Search for the card's **current** official terms:
 - The official URL of the issuer's page for this card (their product or
   rewards details page — not a news article or review site)
 
-Call `report_card_details` with what you find. If you're genuinely unsure
-which card the user means, make your best judgment call and note the
-uncertainty in the description field — the user will see what was added and
-can correct it if it's wrong.
+Search 1-2 times at most, then commit — this needs to respond quickly, and
+the user can correct you if something's off. Call `report_card_details`
+with what you find. If you're genuinely unsure which card the user means,
+make your best judgment call and note the uncertainty in the description
+field — the user will see what was added and can correct it if it's wrong.

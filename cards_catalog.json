@@ -120,6 +120,33 @@
     ],
     "annual_fee": 795,
     "description": "Chase's flagship ultra-premium travel rewards card offering high earn rates on Chase Travel and dining, extensive statement credits, airport lounge access, and flexible Ultimate Rewards point redemptions \u2014 overhauled in June 2025 with a $795 annual fee.",
+    "official_url": "",
+    "source": "web_search",
+    "last_updated": "2026-08-28"
+  },
+  {
+    "name": "Discover it\u00ae Cash Back",
+    "base_rate": 1.0,
+    "rates": [
+      {
+        "category": "Food and Drink",
+        "multiplier": 5.0,
+        "description": "5% cash back when Restaurants are featured in the rotating quarterly bonus calendar (up to $1,500/quarter, activation required)"
+      },
+      {
+        "category": "Shops",
+        "multiplier": 5.0,
+        "description": "5% cash back when retail/shopping categories (e.g., Amazon, grocery stores, gas stations) are featured in the rotating quarterly bonus calendar (up to $1,500/quarter, activation required)"
+      },
+      {
+        "category": "Travel",
+        "multiplier": 5.0,
+        "description": "5% cash back when travel-related categories are featured in the rotating quarterly bonus calendar (up to $1,500/quarter, activation required)"
+      }
+    ],
+    "annual_fee": 0,
+    "description": "A no-annual-fee cash back card that earns 5% in rotating quarterly bonus categories (up to $1,500/quarter, activation required) and 1% on all other purchases, with a first-year Cashback Match on all rewards earned.",
+    "official_url": "https://www.discover.com/credit-cards/cash-back/cashback-bonus.html",
     "source": "web_search",
     "last_updated": "2026-08-28"
   }

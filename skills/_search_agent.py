@@ -13,13 +13,18 @@ import anthropic
 client = anthropic.Anthropic()
 
 MODEL = "claude-sonnet-4-6"
-WEB_SEARCH_TOOL = {"type": "web_search_20260209", "name": "web_search", "max_uses": 5}
+# max_uses caps explicit web_search calls, but the tool's built-in dynamic
+# filtering can still spend a lot of the turn on internal code_execution
+# rounds before responding — keep this tight so a broad, open-ended query
+# doesn't spiral into a multi-minute single turn.
+WEB_SEARCH_TOOL = {"type": "web_search_20260209", "name": "web_search", "max_uses": 3}
 
 
-def run_search_agent(system_prompt: str, user_prompt: str, output_tool: dict, max_turns: int = 6) -> dict:
+def run_search_agent(system_prompt: str, user_prompt: str, output_tool: dict, max_turns: int = 4) -> dict:
     """
     Runs a nested Claude loop with web_search enabled until Claude calls
-    `output_tool` (a standard tool_def dict). Returns that call's `input`.
+    `output_tool` (a standard tool_def dict) with a clean (non-truncated)
+    stop. Returns that call's `input`.
 
     web_search is a server-side tool — Anthropic executes it and attaches
     results inline, so no client-side tool_result handling is needed for it.
@@ -30,15 +35,34 @@ def run_search_agent(system_prompt: str, user_prompt: str, output_tool: dict, ma
     for _ in range(max_turns):
         response = client.messages.create(
             model=MODEL,
-            max_tokens=2048,
+            # Generous: a single turn can involve several search + internal
+            # code_execution rounds before Claude is ready to answer. Too
+            # low a budget truncates the final tool call mid-arguments
+            # instead of just running short on research.
+            max_tokens=8000,
             system=system_prompt,
             tools=tools,
             messages=messages,
         )
 
-        for block in response.content:
-            if block.type == "tool_use" and block.name == output_tool["name"]:
-                return block.input
+        if response.stop_reason == "tool_use":
+            for block in response.content:
+                if block.type == "tool_use" and block.name == output_tool["name"]:
+                    return block.input
+
+        if response.stop_reason == "max_tokens":
+            # The turn got cut off mid-flight — any tool_use block present
+            # is likely truncated/incomplete, so don't trust it. Nudge
+            # toward a decisive answer rather than more research.
+            messages.append({"role": "assistant", "content": response.content})
+            messages.append({
+                "role": "user",
+                "content": (
+                    f"You're running long. Stop researching and call "
+                    f"{output_tool['name']} now with your best answer so far."
+                ),
+            })
+            continue
 
         messages.append({"role": "assistant", "content": response.content})
         messages.append({

@@ -168,9 +168,10 @@ export default function App() {
   }
 
   // ── Send chat message (text and/or image) ─────────────────────────────────
-  // Free-tier hosting spins down when idle, so the first message after the
-  // page loads can hit a backend that's still waking up — retry once with
-  // an honest status message instead of failing hard.
+  // Some requests (new-card research, adding an unfamiliar card) do a live
+  // web search and can legitimately take 30-60+ seconds — timeout is sized
+  // for that, not just a quick recommendation. A failure could still be a
+  // cold free-tier backend waking up, so retry once with an honest message.
   async function sendPayload(text, imageToSend, attempt = 1) {
     if (attempt === 1) {
       if ((!text && !imageToSend) || chatLoading) return;
@@ -186,7 +187,7 @@ export default function App() {
         ...(imageToSend
           ? { image_base64: imageToSend.base64, image_media_type: imageToSend.mediaType }
           : {}),
-      }, { timeout: 60000 });
+      }, { timeout: 110000 });
       setMessages((m) => [...m, {
         role: "agent",
         text: res.data.response,
@@ -198,14 +199,14 @@ export default function App() {
       if (attempt === 1) {
         setMessages((m) => [...m, {
           role: "agent",
-          text: "⏳ The server was asleep (free hosting) — waking it up, retrying in a few seconds…",
+          text: "⏳ That took too long — could be a sleeping free-tier server or a slow search. Retrying…",
         }]);
         setTimeout(() => sendPayload(text, imageToSend, 2), 6000);
         return;
       }
       setMessages((m) => [
         ...m,
-        { role: "agent", text: "Sorry, something went wrong. Is the backend running?" },
+        { role: "agent", text: "Sorry, still no response. Please try again in a moment." },
       ]);
       setChatLoading(false);
     }
