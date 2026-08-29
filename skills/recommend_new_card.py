@@ -11,7 +11,7 @@ research current sign-up offers before answering.
 from pathlib import Path
 
 from .base import Skill
-from ._data import load_transactions, load_user_cards
+from ._data import load_transactions
 from ._search_agent import run_search_agent
 from rewards_engine import analyze_transactions
 
@@ -55,16 +55,24 @@ class RecommendNewCardSkill(Skill):
                     "Optional: narrow the search, e.g. 'travel', 'cashback', "
                     "'no annual fee'. Omit for a general recommendation."
                 ),
-            }
+            },
+            "owned_cards": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": (
+                    "The user's currently owned cards, as given earlier in "
+                    "this conversation — pass them along so the recommendation "
+                    "doesn't suggest a card they already have. Omit if none."
+                ),
+            },
         },
         "required": [],
     }
 
-    def run(self, focus: str | None = None) -> str:
+    def run(self, focus: str | None = None, owned_cards: list[str] | None = None) -> str:
         system_prompt = PROMPT_PATH.read_text()
 
-        owned = load_user_cards()
-        owned_names = [c["card_name"] for c in owned] or ["(none on file)"]
+        owned_names = owned_cards or ["(none on file)"]
 
         transactions = load_transactions()
         spend_summary = "No transaction data available."

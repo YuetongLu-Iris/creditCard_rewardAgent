@@ -43,31 +43,41 @@ class RecommendCardSkill(Skill):
                     "The merchant name (e.g. 'Whole Foods', 'United Airlines') "
                     "or spending category (e.g. 'dining', 'travel', 'groceries')."
                 ),
-            }
+            },
+            "amount": {
+                "type": "number",
+                "description": (
+                    "The actual purchase amount in dollars, if known — e.g. read "
+                    "off a receipt image or stated by the user. Omit if unknown; "
+                    "a $100 example is used for illustration instead."
+                ),
+            },
         },
         "required": ["merchant_or_category"],
     }
 
-    def run(self, merchant_or_category: str) -> str:
+    def run(self, merchant_or_category: str, amount: float | None = None) -> str:
         query = merchant_or_category.lower()
         category = next(
             (plaid_cat for keyword, plaid_cat in _KEYWORD_MAP.items() if keyword in query),
             "Other",
         )
 
-        best_card, rewards, description = find_best_card(category, 100)
+        example_amount = amount if amount else 100
+        best_card, rewards, description = find_best_card(category, example_amount)
         rate, _ = best_card.get_rate_for_category(category)
 
+        basis = f"${example_amount:.2f} purchase" if amount else "$100 purchase"
         lines = [
             f"Best card for '{merchant_or_category}': {best_card.name}",
             f"  Rewards rate: {rate}x ({description})",
-            f"  On a $100 purchase you'd earn: ${rewards:.2f} back",
+            f"  On this {basis} you'd earn: ${rewards:.2f} back",
             "",
-            "All cards compared (per $100 spent):",
+            f"All cards compared (per ${example_amount:.2f} spent):",
         ]
         for card in CARDS:
             r, desc = card.get_rate_for_category(category)
-            earned = 100 * r / 100
+            earned = example_amount * r / 100
             marker = " ✅" if card.name == best_card.name else ""
             lines.append(f"  {card.name:<30} ${earned:.2f}  ({desc}){marker}")
 

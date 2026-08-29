@@ -13,5 +13,6 @@ def chat(
     user_message: str,
     conversation_history: list[dict],
     image: dict | None = None,
-) -> tuple[str, list[dict], set[str]]:
-    return _default_harness.chat(user_message, conversation_history, image=image)
+    owned_cards: list[str] | None = None,
+) -> tuple[str, list[dict], list[dict]]:
+    return _default_harness.chat(user_message, conversation_history, image=image, owned_cards=owned_cards)

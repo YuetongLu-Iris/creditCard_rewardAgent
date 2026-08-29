@@ -1,15 +1,17 @@
 """
 skills/add_owned_card.py
 ---------------------------
-Adds a card to the user's owned-cards list. Tries a local catalog match
-first (cheap, no search needed); if the card isn't in cards_catalog.json
-yet, researches it via web search and adds a new catalog entry.
+Resolves a card the user says they own against the shared catalog — a
+cheap local match first, or a web search (which also adds a new catalog
+entry) if it's not already known. The owned-cards *list* itself lives in
+the browser (localStorage), not on the server — this skill only handles
+the "which card is this, and what does it earn" research; main.py reads
+the resolved catalog entry back out to tell the frontend what to store.
 """
 from datetime import date
 from pathlib import Path
 
 from .base import Skill
-from ._data import load_user_cards, save_user_cards
 from ._search_agent import run_search_agent
 from rewards_engine import CARDS, CreditCard, RewardsRate, save_cards_catalog
 
@@ -106,13 +108,6 @@ class AddOwnedCardSkill(Skill):
             )
             CARDS.append(card)
             save_cards_catalog(CARDS)
-
-        owned = load_user_cards()
-        if any(c["card_name"] == card.name for c in owned):
-            return f"You already have {card.name} on file — nothing to add."
-
-        owned.append({"card_name": card.name, "added_date": date.today().isoformat()})
-        save_user_cards(owned)
 
         rate_lines = "\n".join(
             f"  {r.category}: {r.multiplier}x ({r.description})" for r in card.rates

@@ -41,6 +41,12 @@ The app separately asks the user (via its own UI, not you) which card they
 actually used after a recommendation — don't ask "let me know which card you
 used" yourself, that's already handled.
 
+The user's owned-cards list lives in their browser, not on the server — when
+a message includes a "[Context: the user currently owns...]" note, that's
+the current list for this turn. When calling recommend_new_card_to_open or
+remove_owned_card, pass that list along via their owned_cards parameter so
+they have it too (their own memory doesn't persist it across turns).
+
 """ + IMAGE_GUIDANCE_PATH.read_text()
 
 
@@ -66,7 +72,8 @@ class Harness:
         user_message: str,
         conversation_history: list[dict],
         image: dict | None = None,
-    ) -> tuple[str, list[dict], set[str]]:
+        owned_cards: list[str] | None = None,
+    ) -> tuple[str, list[dict], list[dict]]:
         """
         Send a message to the agent and return its response.
         Handles multi-step tool calling automatically.
@@ -76,26 +83,35 @@ class Harness:
         part of this turn (see skills/prompts/image_understanding.md for how
         it's expected to act on what it sees).
 
-        Returns (response_text, updated_history, tools_used) — tools_used is
-        the set of skill names invoked this turn, so callers (e.g. the /chat
-        endpoint) can react deterministically to what happened without having
-        to parse the response text.
+        owned_cards, if given, is the user's current owned-card names (the
+        frontend's source of truth, not the server's) — injected as context
+        so recommendations can account for it.
+
+        Returns (response_text, updated_history, tool_calls) — tool_calls is
+        [{"name": ..., "input": ...}] for every tool Claude invoked this turn,
+        so callers (e.g. the /chat endpoint) can react deterministically to
+        what happened without having to parse the response text.
         """
-        tools_used: set[str] = set()
+        tool_calls: list[dict] = []
+        content_blocks = []
+        if owned_cards:
+            content_blocks.append({
+                "type": "text",
+                "text": f"[Context: the user currently owns these cards: {', '.join(owned_cards)}]",
+            })
         if image:
-            content = [{
+            content_blocks.append({
                 "type": "image",
                 "source": {
                     "type": "base64",
                     "media_type": image["media_type"],
                     "data": image["data"],
                 },
-            }]
-            if user_message:
-                content.append({"type": "text", "text": user_message})
-            conversation_history.append({"role": "user", "content": content})
-        else:
-            conversation_history.append({"role": "user", "content": user_message})
+            })
+        if user_message:
+            content_blocks.append({"type": "text", "text": user_message})
+
+        conversation_history.append({"role": "user", "content": content_blocks})
 
         while True:
             response = self.client.messages.create(
@@ -116,7 +132,7 @@ class Harness:
                 for block in response.content:
                     if block.type == "tool_use":
                         print(f"  🔧 Calling tool: {block.name}({block.input})")
-                        tools_used.add(block.name)
+                        tool_calls.append({"name": block.name, "input": block.input})
                         result = self.run_tool(block.name, block.input)
                         tool_results.append({
                             "type": "tool_result",
@@ -139,7 +155,7 @@ class Harness:
                     "role": "assistant",
                     "content": response_text,
                 })
-                return response_text, conversation_history, tools_used
+                return response_text, conversation_history, tool_calls
 
 
 def build_default_harness() -> Harness:

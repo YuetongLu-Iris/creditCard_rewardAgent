@@ -9,6 +9,35 @@ import {marked} from "marked"
 const API = "https://creditcard-rewardagent.onrender.com";
 const SESSION_ID = "user-session-1";
 
+// The user's wallet (owned cards + confirmed usage) lives in the browser —
+// Render's free tier has no persistent disk, so anything written
+// server-side gets wiped on the next deploy. localStorage survives that.
+const LS_KEYS = { cards: "rewardsAgent.ownedCards", usage: "rewardsAgent.usageLog" };
+
+function loadLocal(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function saveLocal(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // storage unavailable (private mode, quota) — non-critical, just won't persist
+  }
+}
+
+function computeHighlight(card) {
+  if (card.rates && card.rates.length > 0) {
+    const best = card.rates.reduce((a, b) => (b.multiplier > a.multiplier ? b : a));
+    return `${best.multiplier}x ${best.category}`;
+  }
+  return `${card.base_rate}x on everything`;
+}
 
 // ── Colours for charts ────────────────────────────────────────────────────────
 const CHART_COLORS = [
@@ -106,10 +135,14 @@ function ConfirmCardPrompt({ options, onConfirm }) {
 export default function App() {
   const [report, setReport] = useState(null);
   const [txnData, setTxnData] = useState(null);
-  const [walletData, setWalletData] = useState(null);
-  const [selectedCard, setSelectedCard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Wallet — owned cards + confirmed usage are local (see LS_KEYS comment above).
+  const [ownedCards, setOwnedCards] = useState(() => loadLocal(LS_KEYS.cards, []));
+  const [usageLog, setUsageLog] = useState(() => loadLocal(LS_KEYS.usage, []));
+  const [walletEnrichment, setWalletEnrichment] = useState({}); // name -> {usage, highlight}
+  const [selectedCard, setSelectedCard] = useState(null);
 
   // Chat state
   const [messages, setMessages] = useState([
@@ -124,18 +157,20 @@ export default function App() {
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
 
-  // ── Fetch dashboard data ───────────────────────────────────────────────────
+  // ── Persist wallet state locally ───────────────────────────────────────────
+  useEffect(() => saveLocal(LS_KEYS.cards, ownedCards), [ownedCards]);
+  useEffect(() => saveLocal(LS_KEYS.usage, usageLog), [usageLog]);
+
+  // ── Fetch dashboard data (shared, server-side) ─────────────────────────────
   useEffect(() => {
     async function load() {
       try {
-        const [r, t, w] = await Promise.all([
+        const [r, t] = await Promise.all([
           axios.get(`${API}/report`),
           axios.get(`${API}/transactions`),
-          axios.get(`${API}/wallet`),
         ]);
         setReport(r.data);
         setTxnData(t.data);
-        setWalletData(w.data);
       } catch {
         setError("Could not load data. Make sure the FastAPI server is running and rewards_engine.py has been run.");
       } finally {
@@ -144,6 +179,28 @@ export default function App() {
     }
     load();
   }, []);
+
+  // ── Enrich owned cards with rewards-relevance from the backend ────────────
+  // (catalog details + how much each card earns against real spending —
+  // this needs server-side data the browser doesn't have; usage/ownership
+  // itself doesn't, so it isn't sent here.)
+  useEffect(() => {
+    // Nothing to enrich — harmless to leave any stale entries in
+    // walletEnrichment, since walletCards only ever reads names that are
+    // still in ownedCards.
+    if (ownedCards.length === 0) return;
+
+    axios.post(`${API}/wallet`, { card_names: ownedCards.map((c) => c.name) })
+      .then((res) => {
+        const map = {};
+        for (const c of res.data.cards) map[c.name] = c;
+        setWalletEnrichment(map);
+      })
+      .catch(() => {
+        // non-critical — cards still render from local data, just without
+        // the rewards-relevance table until this succeeds
+      });
+  }, [ownedCards]);
 
   // Auto-scroll chat to bottom
   useEffect(() => {
@@ -158,13 +215,31 @@ export default function App() {
     return () => clearInterval(keepAlive);
   }, []);
 
-  async function refreshWallet() {
-    try {
-      const w = await axios.get(`${API}/wallet`);
-      setWalletData(w.data);
-    } catch {
-      // non-critical — wallet just won't reflect the latest confirmation until next reload
+  // ── Apply what the backend says happened to a card ─────────────────────────
+  function applyWalletAction(action) {
+    if (!action) return;
+    if (action.type === "add") {
+      setOwnedCards((prev) => {
+        if (prev.some((c) => c.name === action.card.name)) return prev;
+        return [...prev, { ...action.card, added_date: new Date().toISOString().slice(0, 10) }];
+      });
+    } else if (action.type === "remove") {
+      const query = action.card_name.toLowerCase();
+      setOwnedCards((prev) =>
+        prev.filter((c) => !(query.includes(c.name.toLowerCase()) || c.name.toLowerCase().includes(query)))
+      );
     }
+  }
+
+  // Confirming which card was used is a pure local write — no backend
+  // round-trip, so it can never be lost to a redeploy or go out of sync.
+  function confirmCardUsage(cardName, pendingPurchase) {
+    setUsageLog((prev) => [...prev, {
+      card_name: cardName,
+      merchant_or_category: pendingPurchase?.merchant_or_category || null,
+      amount: pendingPurchase?.amount || null,
+      date: new Date().toISOString().slice(0, 10),
+    }]);
   }
 
   // ── Send chat message (text and/or image) ─────────────────────────────────
@@ -184,6 +259,7 @@ export default function App() {
       const res = await axios.post(`${API}/chat`, {
         message: text,
         session_id: SESSION_ID,
+        owned_cards: ownedCards.map((c) => c.name),
         ...(imageToSend
           ? { image_base64: imageToSend.base64, image_media_type: imageToSend.mediaType }
           : {}),
@@ -192,12 +268,10 @@ export default function App() {
         role: "agent",
         text: res.data.response,
         confirmOptions: res.data.confirm_card_options || null,
-        confirmContext: text || "Photo recommendation",
+        pendingPurchase: res.data.pending_purchase || null,
       }]);
       setChatLoading(false);
-      // Any turn might have added/removed a card (add_owned_card,
-      // remove_owned_card) — refresh so My Cards doesn't go stale.
-      refreshWallet();
+      applyWalletAction(res.data.wallet_action);
     } catch {
       if (attempt === 1) {
         setMessages((m) => [...m, {
@@ -243,24 +317,6 @@ export default function App() {
     reader.readAsDataURL(file);
   }
 
-  async function confirmCardUsage(cardName, context) {
-    await refreshWalletAfter(
-      axios.post(`${API}/confirm_card_usage`, {
-        card_name: cardName,
-        context: context || "",
-        session_id: SESSION_ID,
-      })
-    );
-  }
-
-  async function refreshWalletAfter(promise) {
-    try {
-      await promise;
-    } finally {
-      refreshWallet();
-    }
-  }
-
   function askBestCardToOpen() {
     sendPayload("What's the best card to open right now?", null);
   }
@@ -283,8 +339,6 @@ export default function App() {
     value: c.total,
   })) ?? [];
 
-  const selectedCardData = walletData?.cards.find((c) => c.name === selectedCard) ?? null;
-
   const barData = report?.category_summaries
     ?.sort((a, b) => b.total_spent - a.total_spent)
     .map((s) => ({
@@ -292,6 +346,33 @@ export default function App() {
       spent: parseFloat(s.total_spent.toFixed(2)),
       rewards: parseFloat(s.best_rewards.toFixed(2)),
     })) ?? [];
+
+  // ── Wallet helpers (merge local ownership + local usage + server enrichment) ─
+  const walletCards = ownedCards.map((c) => {
+    const enrichment = walletEnrichment[c.name];
+    const cardUsage = usageLog.filter((u) => u.card_name === c.name);
+    return {
+      ...c,
+      highlight: enrichment?.highlight ?? computeHighlight(c),
+      usage: enrichment?.usage ?? [],
+      actual_usage_count: cardUsage.length,
+      actual_usage_total: cardUsage.reduce((sum, u) => sum + (u.amount || 0), 0),
+      actual_usage_recent: cardUsage.slice(-3).map((u) => u.merchant_or_category).filter(Boolean),
+    };
+  });
+  const selectedCardData = walletCards.find((c) => c.name === selectedCard) ?? null;
+
+  // ── Dashboard: confirmed usage summary, grouped from the local log ────────
+  const usageByCard = {};
+  for (const u of usageLog) {
+    if (!usageByCard[u.card_name]) usageByCard[u.card_name] = { count: 0, total: 0, recent: null };
+    usageByCard[u.card_name].count += 1;
+    usageByCard[u.card_name].total += u.amount || 0;
+    usageByCard[u.card_name].recent = u.merchant_or_category || usageByCard[u.card_name].recent;
+  }
+  const usageSummary = Object.entries(usageByCard)
+    .map(([name, s]) => ({ name, ...s }))
+    .sort((a, b) => b.count - a.count);
 
   function scrollTo(id) {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -328,7 +409,7 @@ export default function App() {
                   {m.confirmOptions && (
                     <ConfirmCardPrompt
                       options={m.confirmOptions}
-                      onConfirm={(card) => confirmCardUsage(card, m.confirmContext)}
+                      onConfirm={(card) => confirmCardUsage(card, m.pendingPurchase)}
                     />
                   )}
                 </div>
@@ -393,16 +474,16 @@ export default function App() {
         <section id="wallet-section" className="page-section">
           <h2 className="section-title">My Cards</h2>
           <div className="wallet">
-            {(!walletData || walletData.cards.length === 0) && (
+            {walletCards.length === 0 && (
               <p className="status-msg">
                 No cards on file yet — click "Add a Card" above, or tell the agent "I have a ___".
               </p>
             )}
 
-            {walletData && walletData.cards.length > 0 && (
+            {walletCards.length > 0 && (
               <>
                 <div className="wallet-grid">
-                  {walletData.cards.map((c) => (
+                  {walletCards.map((c) => (
                     <button
                       key={c.name}
                       className={`wallet-tile ${selectedCard === c.name ? "active" : ""}`}
@@ -443,7 +524,11 @@ export default function App() {
 
                     {selectedCardData.actual_usage_recent.length > 0 && (
                       <p className="wallet-recent-usage">
-                        Recently confirmed for: {selectedCardData.actual_usage_recent.join(", ")}
+                        Confirmed {selectedCardData.actual_usage_count}x
+                        {selectedCardData.actual_usage_total > 0 &&
+                          ` (~$${selectedCardData.actual_usage_total.toFixed(2)} total)`}
+                        {" — recently for: "}
+                        {selectedCardData.actual_usage_recent.join(", ")}
                       </p>
                     )}
 
@@ -581,8 +666,8 @@ export default function App() {
                   </table>
                 </div>
 
-                {/* Confirmed actual card usage */}
-                {walletData && walletData.cards.some((c) => c.actual_usage_count > 0) && (
+                {/* Confirmed actual card usage (local log) */}
+                {usageSummary.length > 0 && (
                   <div className="table-card">
                     <h2 className="chart-title">Confirmed Card Usage</h2>
                     <table className="rewards-table">
@@ -590,20 +675,19 @@ export default function App() {
                         <tr>
                           <th>Card</th>
                           <th>Times Confirmed</th>
+                          <th>Total Confirmed Spend</th>
                           <th>Most Recent</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {walletData.cards
-                          .filter((c) => c.actual_usage_count > 0)
-                          .sort((a, b) => b.actual_usage_count - a.actual_usage_count)
-                          .map((c) => (
-                            <tr key={c.name}>
-                              <td><span className="card-badge">{c.name}</span></td>
-                              <td>{c.actual_usage_count}</td>
-                              <td>{c.actual_usage_recent[c.actual_usage_recent.length - 1] || "—"}</td>
-                            </tr>
-                          ))}
+                        {usageSummary.map((s) => (
+                          <tr key={s.name}>
+                            <td><span className="card-badge">{s.name}</span></td>
+                            <td>{s.count}</td>
+                            <td className="rewards-cell">{s.total > 0 ? `$${s.total.toFixed(2)}` : "—"}</td>
+                            <td>{s.recent || "—"}</td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
