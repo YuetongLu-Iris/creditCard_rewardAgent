@@ -28,7 +28,18 @@ rewards rates. Your job is to help users maximize their cashback and points by
 recommending the right card for each purchase and identifying missed rewards.
 
 Always use the available tools to fetch real data before answering — never guess
-or make up numbers. Be concise, friendly, and specific with dollar amounts.
+or make up numbers.
+
+Keep responses SHORT by default — 1-3 sentences for a quick card recommendation.
+State the card and the one key reason, skip preambles ("Great question!"), skip
+markdown tables and full multi-card breakdowns unless the user actually asks to
+compare cards or for more detail. The product's core value is speed: someone
+should be able to send a photo of a receipt and immediately see which card to
+use, nothing more, unless they ask a follow-up.
+
+The app separately asks the user (via its own UI, not you) which card they
+actually used after a recommendation — don't ask "let me know which card you
+used" yourself, that's already handled.
 
 """ + IMAGE_GUIDANCE_PATH.read_text()
 
@@ -55,7 +66,7 @@ class Harness:
         user_message: str,
         conversation_history: list[dict],
         image: dict | None = None,
-    ) -> tuple[str, list[dict]]:
+    ) -> tuple[str, list[dict], set[str]]:
         """
         Send a message to the agent and return its response.
         Handles multi-step tool calling automatically.
@@ -65,8 +76,12 @@ class Harness:
         part of this turn (see skills/prompts/image_understanding.md for how
         it's expected to act on what it sees).
 
-        Returns (response_text, updated_history)
+        Returns (response_text, updated_history, tools_used) — tools_used is
+        the set of skill names invoked this turn, so callers (e.g. the /chat
+        endpoint) can react deterministically to what happened without having
+        to parse the response text.
         """
+        tools_used: set[str] = set()
         if image:
             content = [{
                 "type": "image",
@@ -101,6 +116,7 @@ class Harness:
                 for block in response.content:
                     if block.type == "tool_use":
                         print(f"  🔧 Calling tool: {block.name}({block.input})")
+                        tools_used.add(block.name)
                         result = self.run_tool(block.name, block.input)
                         tool_results.append({
                             "type": "tool_result",
@@ -123,7 +139,7 @@ class Harness:
                     "role": "assistant",
                     "content": response_text,
                 })
-                return response_text, conversation_history
+                return response_text, conversation_history, tools_used
 
 
 def build_default_harness() -> Harness:

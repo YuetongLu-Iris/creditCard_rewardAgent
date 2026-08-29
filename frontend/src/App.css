@@ -57,7 +57,16 @@ body {
 }
 
 .nav-btn:hover  { background: #f3f4f6; color: #1e1b4b; }
-.nav-btn.active { background: #ede9fe; color: #4f46e5; }
+
+/* ── Page sections (single scrolling page) ──────────────────────────────── */
+.page-section { margin-top: 40px; scroll-margin-top: 72px; }
+
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e1b4b;
+  margin-bottom: 16px;
+}
 
 /* ── Stat cards ──────────────────────────────────────────────────────────── */
 .stat-row {
@@ -149,20 +158,86 @@ body {
 
 .rewards-cell { color: #4f46e5; font-weight: 600; }
 
+/* ── Wallet (My Cards) ───────────────────────────────────────────────────── */
+.wallet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.wallet-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.wallet-tile:hover { transform: translateY(-1px); }
+.wallet-tile.active { border-color: #6366f1; }
+
+.wallet-tile-name { font-size: 14px; font-weight: 600; color: #1e1b4b; }
+.wallet-tile-highlight { font-size: 20px; font-weight: 700; color: #4f46e5; }
+.wallet-tile-fee { font-size: 12px; color: #9ca3af; }
+
+.wallet-detail {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+
+.wallet-bullets {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.7;
+}
+
+.wallet-official-link {
+  display: inline-block;
+  font-size: 13px;
+  color: #4f46e5;
+  font-weight: 600;
+  text-decoration: none;
+  margin-bottom: 16px;
+}
+.wallet-official-link:hover { text-decoration: underline; }
+
+.wallet-best-badge { margin-left: 6px; }
+
+.wallet-recent-usage {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
 /* ── Status messages ─────────────────────────────────────────────────────── */
 .status-msg { color: #6b7280; font-size: 14px; text-align: center; padding: 40px 0; }
 .status-msg.error { color: #dc2626; }
 
 /* ── Chat ────────────────────────────────────────────────────────────────── */
+.chat-hero { margin-top: 8px; }
+
 .chat-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 56px - 64px);
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0,0,0,.06);
   overflow: hidden;
 }
+
+.chat-container.compact { height: 460px; }
 
 .chat-messages {
   flex: 1;
@@ -256,32 +331,6 @@ body {
 .attach-btn:hover:not(:disabled) { background: #f3f4f6; border-color: #c7c9f5; }
 .attach-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.pending-image-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  border-top: 1px solid #e5e7eb;
-  background: #f9fafb;
-}
-.pending-image-thumb {
-  width: 40px;
-  height: 40px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-}
-.pending-image-label { font-size: 12px; color: #6b7280; flex: 1; }
-.pending-image-remove {
-  border: none;
-  background: none;
-  color: #9ca3af;
-  cursor: pointer;
-  font-size: 14px;
-  padding: 4px;
-}
-.pending-image-remove:hover { color: #dc2626; }
-
 .message-image {
   max-width: 220px;
   max-height: 220px;
@@ -290,12 +339,80 @@ body {
   margin-bottom: 6px;
 }
 
-.chat-hint {
-  text-align: center;
-  font-size: 11px;
-  color: #9ca3af;
-  padding: 6px 16px 10px;
+/* Quick action buttons above the input row */
+.quick-actions {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px 0;
   background: #fff;
+}
+
+.quick-action-btn {
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #4f46e5;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+.quick-action-btn:hover:not(:disabled) { background: #ede9fe; border-color: #c7c9f5; }
+.quick-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* "Which card did you use?" confirmation prompt */
+.confirm-card-row {
+  margin: 4px 0 4px 4px;
+  max-width: 72%;
+}
+
+.confirm-card-label { font-size: 11px; color: #9ca3af; margin-bottom: 6px; }
+
+.confirm-card-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.confirm-chip {
+  border: 1px solid #ddd6fe;
+  background: #fff;
+  color: #4f46e5;
+  border-radius: 14px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.confirm-chip:hover { background: #ede9fe; }
+.confirm-chip.other { color: #6b7280; border-color: #e5e7eb; }
+
+.confirm-other-row { display: flex; gap: 6px; margin-top: 6px; }
+
+.confirm-other-input {
+  flex: 1;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  outline: none;
+}
+.confirm-other-input:focus { border-color: #6366f1; }
+
+.confirm-other-save {
+  border: none;
+  background: #4f46e5;
+  color: #fff;
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirm-done {
+  font-size: 12px;
+  color: #16a34a;
+  margin: 4px 0 4px 4px;
 }
 /* Markdown inside chat bubbles */
 .message-bubble h3 {

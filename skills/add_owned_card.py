@@ -28,6 +28,10 @@ OUTPUT_TOOL = {
             },
             "annual_fee": {"type": "number", "description": "Annual fee in dollars."},
             "description": {"type": "string", "description": "One-sentence summary of the card."},
+            "official_url": {
+                "type": "string",
+                "description": "URL of the issuer's official page for this card (product/rewards details).",
+            },
             "rates": {
                 "type": "array",
                 "description": "Bonus category rates.",
@@ -45,7 +49,7 @@ OUTPUT_TOOL = {
                 },
             },
         },
-        "required": ["name", "base_rate", "annual_fee", "description", "rates"],
+        "required": ["name", "base_rate", "annual_fee", "description", "official_url", "rates"],
     },
 }
 
@@ -96,6 +100,7 @@ class AddOwnedCardSkill(Skill):
                 rates=[RewardsRate(**r) for r in result["rates"]],
                 annual_fee=result["annual_fee"],
                 description=result["description"],
+                official_url=result["official_url"],
                 source="web_search",
                 last_updated=date.today().isoformat(),
             )

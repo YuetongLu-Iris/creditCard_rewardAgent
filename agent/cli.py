@@ -38,7 +38,7 @@ def main():
             break
 
         print()  # spacing
-        response, conversation_history = chat(user_input, conversation_history)
+        response, conversation_history, _tools_used = chat(user_input, conversation_history)
         print(f"Agent: {response}\n")
 
 

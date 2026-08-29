@@ -56,6 +56,7 @@ class CreditCard:
     rates: list[RewardsRate] = field(default_factory=list)
     annual_fee: float = 0.0
     description: str = ""
+    official_url: str = ""                  # link to the issuer's official card/rewards page
     source: str = "seed"                    # "seed" (curated) or "web_search" (discovered live)
     last_updated: str | None = None         # ISO date; None for hand-curated seed entries
 
@@ -87,6 +88,7 @@ def _card_from_dict(d: dict) -> CreditCard:
         rates=[RewardsRate(**r) for r in d.get("rates", [])],
         annual_fee=d.get("annual_fee", 0.0),
         description=d.get("description", ""),
+        official_url=d.get("official_url", ""),
         source=d.get("source", "seed"),
         last_updated=d.get("last_updated"),
     )
