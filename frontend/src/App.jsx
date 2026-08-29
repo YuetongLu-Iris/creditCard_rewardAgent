@@ -195,6 +195,9 @@ export default function App() {
         confirmContext: text || "Photo recommendation",
       }]);
       setChatLoading(false);
+      // Any turn might have added/removed a card (add_owned_card,
+      // remove_owned_card) — refresh so My Cards doesn't go stale.
+      refreshWallet();
     } catch {
       if (attempt === 1) {
         setMessages((m) => [...m, {
