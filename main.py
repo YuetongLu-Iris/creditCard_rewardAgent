@@ -107,8 +107,6 @@ def chat_endpoint(request: ChatRequest):
     if session_id not in conversation_histories:
         conversation_histories[session_id] = []
 
-    history = conversation_histories[session_id]
-
     image = None
     if request.image_base64:
         if not request.image_media_type:
@@ -117,6 +115,11 @@ def chat_endpoint(request: ChatRequest):
 
     if not request.message and not image:
         raise HTTPException(status_code=400, detail="Provide a message, an image, or both.")
+
+    # Pass a copy: chat() mutates the list in place as it goes, so on any
+    # failure partway through, the copy is discarded and the stored session
+    # keeps its last-known-good state instead of being left half-written.
+    history = list(conversation_histories[session_id])
 
     try:
         response_text, updated_history, tool_calls = chat(

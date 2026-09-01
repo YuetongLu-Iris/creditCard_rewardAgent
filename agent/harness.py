@@ -133,11 +133,23 @@ class Harness:
                     if block.type == "tool_use":
                         print(f"  🔧 Calling tool: {block.name}({block.input})")
                         tool_calls.append({"name": block.name, "input": block.input})
-                        result = self.run_tool(block.name, block.input)
+                        # A tool_use must always get a matching tool_result, even
+                        # on failure — otherwise the conversation history is left
+                        # permanently invalid (every future turn on this session
+                        # gets rejected by the API) since history persists across
+                        # requests. Report the failure to Claude instead of
+                        # crashing the turn.
+                        try:
+                            result = self.run_tool(block.name, block.input)
+                            is_error = False
+                        except Exception as e:
+                            result = f"Tool failed: {e}"
+                            is_error = True
                         tool_results.append({
                             "type": "tool_result",
                             "tool_use_id": block.id,
                             "content": result,
+                            "is_error": is_error,
                         })
 
                 conversation_history.append({
