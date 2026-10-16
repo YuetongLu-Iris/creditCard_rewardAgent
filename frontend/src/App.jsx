@@ -154,6 +154,7 @@ export default function App() {
   const [input, setInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [showSlowHint, setShowSlowHint] = useState(false);
+  const [slowHintKind, setSlowHintKind] = useState("general"); // "new_card" | "general"
   const bottomRef = useRef(null);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
@@ -258,13 +259,14 @@ export default function App() {
   // web search and can legitimately take 30-60+ seconds — timeout is sized
   // for that, not just a quick recommendation. A failure could still be a
   // cold free-tier backend waking up, so retry once with an honest message.
-  async function sendPayload(text, imageToSend, attempt = 1) {
+  async function sendPayload(text, imageToSend, attempt = 1, kind = "general") {
     if (attempt === 1) {
       if ((!text && !imageToSend) || chatLoading) return;
       setMessages((m) => [...m, { role: "user", text, imageUrl: imageToSend?.previewUrl }]);
       setInput("");
       setChatLoading(true);
       setShowSlowHint(false);
+      setSlowHintKind(kind);
     }
 
     try {
@@ -290,7 +292,7 @@ export default function App() {
           role: "agent",
           text: "⏳ That took too long — could be a sleeping free-tier server or a slow search. Retrying…",
         }]);
-        setTimeout(() => sendPayload(text, imageToSend, 2), 6000);
+        setTimeout(() => sendPayload(text, imageToSend, 2, kind), 6000);
         return;
       }
       setMessages((m) => [
@@ -330,7 +332,7 @@ export default function App() {
   }
 
   function askBestCardToOpen() {
-    sendPayload("What's the best card to open right now?", null);
+    sendPayload("What's the best card to open right now?", null, 1, "new_card");
   }
 
   function startAddCard() {
@@ -434,7 +436,11 @@ export default function App() {
                 </div>
               )}
               {chatLoading && showSlowHint && (
-                <p className="slow-hint">🔍 Still working — researching live offers can take up to a minute.</p>
+                <p className="slow-hint">
+                  {slowHintKind === "new_card"
+                    ? "🔍 Still working — researching current card offers can take up to a minute."
+                    : "🔍 Still working — searching online."}
+                </p>
               )}
               <div ref={bottomRef} />
             </div>
