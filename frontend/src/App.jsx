@@ -153,6 +153,7 @@ export default function App() {
   ]);
   const [input, setInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
+  const [showSlowHint, setShowSlowHint] = useState(false);
   const bottomRef = useRef(null);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
@@ -215,6 +216,16 @@ export default function App() {
     return () => clearInterval(keepAlive);
   }, []);
 
+  // A handful of requests (new-card research, adding an unfamiliar card) do
+  // a live web search and can take 30-60s+. Rather than guess upfront which
+  // message will be slow, just upgrade the loading indicator if we're still
+  // waiting past a normal response time.
+  useEffect(() => {
+    if (!chatLoading) return;
+    const t = setTimeout(() => setShowSlowHint(true), 8000);
+    return () => clearTimeout(t);
+  }, [chatLoading]);
+
   // ── Apply what the backend says happened to a card ─────────────────────────
   function applyWalletAction(action) {
     if (!action) return;
@@ -253,6 +264,7 @@ export default function App() {
       setMessages((m) => [...m, { role: "user", text, imageUrl: imageToSend?.previewUrl }]);
       setInput("");
       setChatLoading(true);
+      setShowSlowHint(false);
     }
 
     try {
@@ -420,6 +432,9 @@ export default function App() {
                     <span /><span /><span />
                   </div>
                 </div>
+              )}
+              {chatLoading && showSlowHint && (
+                <p className="slow-hint">🔍 Still working — researching live offers can take up to a minute.</p>
               )}
               <div ref={bottomRef} />
             </div>
